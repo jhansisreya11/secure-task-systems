@@ -8,6 +8,7 @@ import { User } from '../entities/user.entity';
 import { Organization } from '../entities/organization.entity';
 import { Task } from '../entities/task.entity';
 import { AuditLog } from '../entities/audit.entity';
+import { HealthController } from './health.controller';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -27,5 +28,6 @@ dotenv.config();
     TasksModule,
     AuditModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

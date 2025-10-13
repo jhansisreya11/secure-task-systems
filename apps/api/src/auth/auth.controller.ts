@@ -20,7 +20,6 @@ export class AuthController {
     return this.authService.login(user);
   }
 
-  // Optional: simple register for local dev
   @Post('register')
   async register(@Body() body: { username: string; password: string; role?: any; orgName?: string }) {
     const org = await this.usersService.findOrCreateOrg(body.orgName || 'Default Org');
