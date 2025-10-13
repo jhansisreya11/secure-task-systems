@@ -1,0 +1,28 @@
+{
+  "name": "data",
+  "root": "libs/data",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/data/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "options": {
+        "outputPath": "dist/libs/data",
+        "tsConfig": "libs/data/tsconfig.lib.json",
+        "main": "libs/data/src/index.ts"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "outputPath": "dist/libs/data",
+        "tsConfig": "libs/data/tsconfig.lib.json",
+        "main": "libs/data/src/index.ts",
+        "jestConfig": "libs/data/jest.config.ts"
+      }
+    }
+  }
+}

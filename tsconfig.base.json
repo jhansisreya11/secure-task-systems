@@ -14,7 +14,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@secure-task-system/auth": ["libs/auth/src/index.ts"],
+      "@secure-task-system/data": ["libs/data/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
