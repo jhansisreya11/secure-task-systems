@@ -22,6 +22,9 @@ export class Task {
   @ManyToOne(() => User, { eager: true })
   createdBy!: User;
 
+  @ManyToOne(() => User, { eager: true, nullable: true })
+  assignee?: User;
+
   @CreateDateColumn()
   createdAt!: Date;
 

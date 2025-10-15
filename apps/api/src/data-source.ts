@@ -2,21 +2,24 @@ import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-dotenv.config();
 
-import { User } from './entities/user.entity';
-import { Organization } from './entities/organization.entity';
-import { Task } from './entities/task.entity';
-import { AuditLog } from './entities/audit.entity';
 
-const migrationsDir = path.join(__dirname, 'migrations');
-const entitiesDir = path.join(__dirname, '**/*.entity.{ts,js}');
+dotenv.config({ path: path.resolve(process.cwd(), 'apps/api/.env') });
+
+
+const dbPath = path.resolve(process.cwd(), process.env.DATABASE_PATH ?? 'apps/api/db.sqlite');
+
+
+const migrationsDir = path.resolve(__dirname, 'migrations');                 
+const entitiesGlob  = path.resolve(__dirname, '**/*.entity.{ts,js}');        
 
 export const AppDataSource = new DataSource({
   type: 'sqlite',
-  database: process.env.DATABASE || 'db.sqlite',
-  entities: [entitiesDir],
-  migrations: [path.join(migrationsDir,'*.{ts,js}')],
+  database: dbPath,
+  entities: [entitiesGlob],
+  migrations: [path.join(migrationsDir, '*.{ts,js}')],
+  migrationsTableName: 'migrations',
   synchronize: false,
   logging: true,
 });
+console.log('[TypeORM] DB file ->', dbPath);

@@ -22,6 +22,13 @@
     "buildTarget": "api:build",
     "watch": true
   }
-}
+},
+"test": {
+      "executor": "@nx/jest:jest",
+      "options": {
+        "jestConfig": "apps/api/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
 }
 }

@@ -11,4 +11,8 @@ export class CreateTaskDto {
   @IsOptional()
   @IsIn(['todo', 'in-progress', 'done'])
   status?: 'todo' | 'in-progress' | 'done';
+
+  @IsOptional()
+  @IsString()
+  assigneeId?: string;
 }

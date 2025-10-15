@@ -1,8 +1,7 @@
 import { Controller, UseGuards, Post, Body, Get, Request, Param, Put, Delete } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import { Roles, RolesGuard } from '@secure-task-system/auth';
 import { User } from '../entities/user.entity';
 import { Request as ExpressRequest } from 'express';
 import { CreateTaskDto, UpdateTaskDto } from '@secure-task-system/data';

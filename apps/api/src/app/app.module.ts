@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {ConfigModule} from '@nestjs/config';
 import { AuthModule } from '../auth/auth.module';
@@ -10,9 +11,17 @@ import { Organization } from '../entities/organization.entity';
 import { Task } from '../entities/task.entity';
 import { AuditLog } from '../entities/audit.entity';
 import { HealthController } from './health.controller';
+import { RolesGuard } from '@secure-task-system/auth';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 
 dotenv.config();
+
+const dbPath = path.resolve(
+  process.cwd(),
+  process.env.DATABASE_PATH ?? 'apps/api/db.sqlite'
+);
 
 @Module({
   imports: [
@@ -22,7 +31,8 @@ dotenv.config();
     }),
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: process.env.DATABASE || 'db.sqlite',
+      database: dbPath,
+      autoLoadEntities: true,
       entities: [User, Organization, Task, AuditLog],
       synchronize: false, 
       logging: false,
@@ -35,4 +45,8 @@ dotenv.config();
   ],
   controllers: [HealthController],
 })
-export class AppModule {}
+export class AppModule {
+  constructor() {
+    console.log('[Nest] DB file ->', dbPath);
+  }
+}

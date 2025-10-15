@@ -3,28 +3,44 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from '../entities/task.entity';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { CreateTaskDto } from '@secure-task-system/data';
+import { UpdateTaskDto } from '@secure-task-system/data';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task) private repo: Repository<Task>,
-    private audit: AuditService,
+    @InjectRepository(User) private readonly usersRepo: Repository<User>,
+    private readonly audit: AuditService,
   ) {}
+  
+  private isAdminOrOwner(user: User) {
+    return user.role === 'Admin' || user.role === 'Owner';
+  }
 
-  // Explicitly type `data` as Partial<Task> is fine, but we tell TS that saved will be a single Task
-  async create(user: User, data: Partial<Task>): Promise<Task> {
+  async create(user: User, dto: CreateTaskDto) {
     if (user.role === 'Viewer') {
       throw new ForbiddenException('Viewers cannot create tasks');
     }
 
     const task: Task = this.repo.create({
-      title: data.title,
-      description: data.description,
-      status: (data.status as 'todo' | 'in-progress' | 'done') || 'todo',
+      id: crypto.randomUUID(),
+      title: dto.title,
+      description: dto.description,
+      status: (dto.status as 'todo' | 'in-progress' | 'done') || 'todo',
       organization: user.organization,
       createdBy: user, 
     });
+
+    if (dto.assigneeId) {
+      const assignee = await this.usersRepo.findOne({ where: { id: dto.assigneeId } });
+      if (!assignee) throw new NotFoundException('Assignee not found');
+      if (assignee.organization?.id !== user.organization?.id && !this.isAdminOrOwner(user)) {
+        throw new ForbiddenException('Cannot assign user from a different organization');
+      }
+      task.assignee = assignee;
+    }
 
     const saved: Task = await this.repo.save(task); 
 
@@ -58,7 +74,7 @@ export class TasksService {
     return task;
   }
 
-  async update(user: User, id: string, updates: Partial<Task>): Promise<Task> {
+  async update(user: User, id: string, dto: UpdateTaskDto): Promise<Task> {
     const task = await this.repo.findOne({ where: { id } });
     if (!task) throw new NotFoundException('Task not found');
 
@@ -70,11 +86,33 @@ export class TasksService {
       throw new ForbiddenException('Viewers cannot edit tasks');
     }
 
-    task.title = updates.title ?? task.title;
-    task.description = updates.description ?? task.description;
-    if (updates.status) {
-      task.status = updates.status as 'todo' | 'in-progress' | 'done';
+    if (
+      dto.status &&
+      !(this.isAdminOrOwner(user) || user.id === task.assignee?.id)
+    ) {
+      throw new ForbiddenException('Only assignee, Admin, or Owner can update status');
     }
+
+    if (dto.assigneeId) {
+      if (!this.isAdminOrOwner(user)) {
+        throw new ForbiddenException('Only Admin/Owner can reassign tasks');
+      }
+      const newAssignee = await this.usersRepo.findOne({ where: { id: dto.assigneeId } });
+      if (!newAssignee) throw new NotFoundException('Assignee not found');
+
+      if (
+        newAssignee.organization?.id !== task.organization?.id &&
+        user.role !== 'Owner'
+      ) {
+        throw new ForbiddenException('Cannot assign outside organization');
+      }
+
+      task.assignee = newAssignee;
+    }
+
+    if (dto.title !== undefined) task.title = dto.title;
+    if (dto.description !== undefined) task.description = dto.description;
+    if (dto.status !== undefined) task.status = dto.status as 'todo' | 'in-progress' | 'done';
 
     const saved: Task = await this.repo.save(task);
 
@@ -85,13 +123,11 @@ export class TasksService {
   async remove(user: User, id: string): Promise<{ deleted: boolean }> {
     const task = await this.repo.findOne({ where: { id } });
     if (!task) throw new NotFoundException('Task not found');
-
+    if (!this.isAdminOrOwner(user)) {
+      throw new ForbiddenException('Only Admin/Owner can delete tasks');
+    } 
     if (task.organization.id !== user.organization.id && user.role !== 'Owner') {
       throw new ForbiddenException('Access denied');
-    }
-
-    if (user.role === 'Viewer') {
-      throw new ForbiddenException('Viewers cannot delete tasks');
     }
 
     await this.repo.remove(task);
