@@ -1,137 +1,87 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Task } from '../entities/task.entity';
 import { Repository } from 'typeorm';
+import { Task } from '../entities/task.entity';
 import { User } from '../entities/user.entity';
-import { CreateTaskDto } from '@secure-task-system/data';
-import { UpdateTaskDto } from '@secure-task-system/data';
-import { AuditService } from '../audit/audit.service';
+import { Organization } from '../entities/organization.entity';
+
+type Status = 'todo' | 'in-progress' | 'done';
 
 @Injectable()
 export class TasksService {
   constructor(
-    @InjectRepository(Task) private repo: Repository<Task>,
-    @InjectRepository(User) private readonly usersRepo: Repository<User>,
-    private readonly audit: AuditService,
+    @InjectRepository(Task) private tasksRepo: Repository<Task>,
+    @InjectRepository(User) private usersRepo: Repository<User>,
+    @InjectRepository(Organization) private orgsRepo: Repository<Organization>,
   ) {}
-  
-  private isAdminOrOwner(user: User) {
-    return user.role === 'Admin' || user.role === 'Owner';
-  }
 
-  async create(user: User, dto: CreateTaskDto) {
-    if (user.role === 'Viewer') {
-      throw new ForbiddenException('Viewers cannot create tasks');
-    }
+  async createWithOrg(args: {
+    title: string;
+    description?: string;
+    status?: Status;
+    createdByUserId: string | number;
+    orgId: string | number;
+  }) {
+    const userId = Number(args.createdByUserId);
+    const orgIdNum = Number(args.orgId);
 
-    const task: Task = this.repo.create({
-      id: crypto.randomUUID(),
-      title: dto.title,
-      description: dto.description,
-      status: (dto.status as 'todo' | 'in-progress' | 'done') || 'todo',
-      organization: user.organization,
-      createdBy: user, 
+    const [user, org] = await Promise.all([
+      this.usersRepo.findOne({ where: { id: userId }, relations: ['organization'] }),
+      this.orgsRepo.findOne({ where: { id: orgIdNum } }),
+    ]);
+
+    if (!user || !org) throw new ForbiddenException('Invalid user or organization');
+
+    const task = this.tasksRepo.create({
+      title: args.title,
+      description: args.description,
+      status: args.status ?? 'todo',
+      createdBy: user,
+      organization: org,
     });
+    return this.tasksRepo.save(task);
+  }
 
-    if (dto.assigneeId) {
-      const assignee = await this.usersRepo.findOne({ where: { id: dto.assigneeId } });
-      if (!assignee) throw new NotFoundException('Assignee not found');
-      if (assignee.organization?.id !== user.organization?.id && !this.isAdminOrOwner(user)) {
-        throw new ForbiddenException('Cannot assign user from a different organization');
-      }
-      task.assignee = assignee;
-    }
-
-    const saved: Task = await this.repo.save(task); 
-
-    await this.audit.log(user.id, user.username, 'create_task', {
-      taskId: saved.id,
-      title: saved.title,
+  async findAllByOrg(orgId: string | number) {
+    const orgIdNum = Number(orgId);
+    return this.tasksRepo.find({
+      where: { organization: { id: orgIdNum } },
+      relations: ['createdBy', 'organization'],
+      order: { createdAt: 'DESC' as any },
     });
-
-    return saved;
   }
 
-  async findAll(user: User): Promise<Task[]> {
-    const tasks: Task[] = await this.repo.find({
-      where: { organization: { id: user.organization.id } },
-      order: { createdAt: 'DESC' },
+  async findById(id: string | number) {
+    const idNum = Number(id);
+    return this.tasksRepo.findOne({
+      where: { id: idNum },
+      relations: ['createdBy', 'organization'],
     });
-
-    await this.audit.log(user.id, user.username, 'list_tasks', { count: tasks.length });
-    return tasks;
   }
 
-  async findById(user: User, id: string): Promise<Task> {
-    const task = await this.repo.findOne({ where: { id } });
-    if (!task) throw new NotFoundException('Task not found');
-
-    if (task.organization.id !== user.organization.id && user.role !== 'Owner') {
-      throw new ForbiddenException('Access to task denied');
-    }
-
-    await this.audit.log(user.id, user.username, 'view_task', { taskId: id });
-    return task;
+  async findByIdScoped(orgId: string | number, id: string | number) {
+    const orgIdNum = Number(orgId);
+    const t = await this.findById(id);
+    if (!t) throw new NotFoundException();
+    if (!t.organization || t.organization.id !== orgIdNum) throw new ForbiddenException();
+    return t;
   }
 
-  async update(user: User, id: string, dto: UpdateTaskDto): Promise<Task> {
-    const task = await this.repo.findOne({ where: { id } });
-    if (!task) throw new NotFoundException('Task not found');
-
-    if (task.organization.id !== user.organization.id && user.role !== 'Owner') {
-      throw new ForbiddenException('Access denied');
-    }
-
-    if (user.role === 'Viewer') {
-      throw new ForbiddenException('Viewers cannot edit tasks');
-    }
-
-    if (
-      dto.status &&
-      !(this.isAdminOrOwner(user) || user.id === task.assignee?.id)
-    ) {
-      throw new ForbiddenException('Only assignee, Admin, or Owner can update status');
-    }
-
-    if (dto.assigneeId) {
-      if (!this.isAdminOrOwner(user)) {
-        throw new ForbiddenException('Only Admin/Owner can reassign tasks');
-      }
-      const newAssignee = await this.usersRepo.findOne({ where: { id: dto.assigneeId } });
-      if (!newAssignee) throw new NotFoundException('Assignee not found');
-
-      if (
-        newAssignee.organization?.id !== task.organization?.id &&
-        user.role !== 'Owner'
-      ) {
-        throw new ForbiddenException('Cannot assign outside organization');
-      }
-
-      task.assignee = newAssignee;
-    }
-
-    if (dto.title !== undefined) task.title = dto.title;
-    if (dto.description !== undefined) task.description = dto.description;
-    if (dto.status !== undefined) task.status = dto.status as 'todo' | 'in-progress' | 'done';
-
-    const saved: Task = await this.repo.save(task);
-
-    await this.audit.log(user.id, user.username, 'update_task', { taskId: saved.id });
-    return saved;
+  async updateInOrg(
+    orgId: string | number,
+    id: string | number,
+    updates: Partial<Pick<Task, 'title' | 'description' | 'status'>>,
+  ) {
+    const task = await this.findByIdScoped(orgId, id);
+    if (updates.title !== undefined) task.title = updates.title;
+    if (updates.description !== undefined) task.description = updates.description;
+    if (updates.status !== undefined) task.status = updates.status as Status;
+    return this.tasksRepo.save(task);
   }
 
-  async remove(user: User, id: string): Promise<{ deleted: boolean }> {
-    const task = await this.repo.findOne({ where: { id } });
-    if (!task) throw new NotFoundException('Task not found');
-    if (!this.isAdminOrOwner(user)) {
-      throw new ForbiddenException('Only Admin/Owner can delete tasks');
-    } 
-    if (task.organization.id !== user.organization.id && user.role !== 'Owner') {
-      throw new ForbiddenException('Access denied');
-    }
-
-    await this.repo.remove(task);
-    await this.audit.log(user.id, user.username, 'delete_task', { taskId: id });
+  async deleteInOrg(orgId: string | number, id: string | number) {
+    const task = await this.findByIdScoped(orgId, id);
+    await this.tasksRepo.remove(task);
     return { deleted: true };
   }
 }

@@ -19,7 +19,7 @@ export const AppDataSource = new DataSource({
   entities: [entitiesGlob],
   migrations: [path.join(migrationsDir, '*.{ts,js}')],
   migrationsTableName: 'migrations',
-  synchronize: false,
+  synchronize: true,
   logging: true,
 });
 console.log('[TypeORM] DB file ->', dbPath);

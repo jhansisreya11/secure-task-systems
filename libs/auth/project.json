@@ -5,22 +5,29 @@
   "projectType": "library",
   "tags": [],
   "targets": {
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{workspaceRoot}/dist/libs/auth"],
       "options": {
         "outputPath": "dist/libs/auth",
         "main": "libs/auth/src/index.ts",
         "tsConfig": "libs/auth/tsconfig.lib.json",
         "assets": []
       }
-    }
-  },
-  "test": {
+    },
+    "test": {
       "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/libs/auth"],
       "options": {
         "jestConfig": "libs/auth/jest.config.ts",
         "passWithNoTests": true
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["libs/auth/**/*.ts"]
+      }
     }
+  }
 }

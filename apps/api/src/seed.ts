@@ -6,13 +6,14 @@ dotenv.config();
 import { User } from './entities/user.entity';
 import { Organization } from './entities/organization.entity';
 import { Task } from './entities/task.entity';
-import { AuditLog } from './entities/audit.entity';
+// Remove this if you don't have it:
+// import { AuditLog } from './entities/audit.entity';
 import * as bcrypt from 'bcryptjs';
 
 const AppDataSource = new DataSource({
   type: 'sqlite',
   database: `${__dirname}/../db.sqlite`,
-  entities: [User, Organization, Task, AuditLog],
+  entities: [User, Organization, Task], // AuditLog removed unless you have it
   synchronize: true,
 });
 
@@ -32,9 +33,10 @@ async function seed() {
   async function createUserIfNotExists(username: string, role: 'Owner' | 'Admin' | 'Viewer') {
     let user = await userRepo.findOne({ where: { username } });
     if (!user) {
+      const hash = await bcrypt.hash('password', 10);
       user = userRepo.create({
         username,
-        passwordHash: await bcrypt.hash('password', 10),
+        passwordHash: hash,   // <-- writes to passwordHash
         role,
         organization: org!,
       });
@@ -50,8 +52,18 @@ async function seed() {
 
   const existingTasks = await taskRepo.find();
   if (existingTasks.length === 0) {
-    await taskRepo.save(taskRepo.create({ title: 'Sample Task 1', description: 'Seeded task', organization: org!, createdBy: owner }));
-    await taskRepo.save(taskRepo.create({ title: 'Sample Task 2', description: 'Another task', organization: org!, createdBy: admin }));
+    await taskRepo.save(taskRepo.create({
+      title: 'Sample Task 1',
+      description: 'Seeded task',
+      organization: org!,
+      createdBy: owner
+    }));
+    await taskRepo.save(taskRepo.create({
+      title: 'Sample Task 2',
+      description: 'Another task',
+      organization: org!,
+      createdBy: admin
+    }));
     console.log('seeded tasks');
   }
 
@@ -60,6 +72,6 @@ async function seed() {
 }
 
 seed().catch(err => {
-  console.error(err);
+  console.error('SEED ERROR:', err?.stack || err);
   process.exit(1);
 });

@@ -12,37 +12,33 @@ export class UsersService {
     @InjectRepository(Organization) private orgRepo: Repository<Organization>,
   ) {}
 
-  async findByUsername(username: string): Promise<User | null> {
-    return this.usersRepo.findOneBy({ username });
+  async findByUsername(username: string) {
+    return this.usersRepo.findOne({ where: { username }, relations: ['organization'] });
   }
 
-  async findById(id: string): Promise<User | null> {
-    return this.usersRepo.findOneBy({ id });
+  async findById(id: number) {
+    return this.usersRepo.findOne({ where: { id }, relations: ['organization'] });
   }
 
-  async create({
-    username,
-    password,
-    role = 'Viewer',
-    organization,
-  }: {
+  async create(args: {
     username: string;
     password: string;
-    role?: any;
-    organization: Organization;
-  }): Promise<User> {   
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = this.usersRepo.create({ username, passwordHash, role, organization });
-    const saved = await this.usersRepo.save(user);
-    return saved;
-}
+    role?: 'Owner'|'Admin'|'Viewer';
+    organization: Organization | null;
+  }) {
+    const passwordHash = await bcrypt.hash(String(args.password), 10);
+    const user = this.usersRepo.create({
+      username: args.username,
+      passwordHash,
+      role: args.role ?? 'Viewer',
+      organization: args.organization ?? null,
+    });
+    return this.usersRepo.save(user);
+  }
 
-async findOrCreateOrg(name: string) {
+  async findOrCreateOrg(name: string) {
     let org = await this.orgRepo.findOne({ where: { name } });
-    if (!org) {
-      org = this.orgRepo.create({ name });
-      org = await this.orgRepo.save(org);
-    }
+    if (!org) org = await this.orgRepo.save(this.orgRepo.create({ name }));
     return org;
   }
 }

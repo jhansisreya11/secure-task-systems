@@ -1,0 +1,155 @@
+<div class="p-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-5xl font-extrabold">Tasks</h1>
+    <div class="text-gray-600">
+      Signed in as <b>{{ role() }}</b>
+      <button class="ml-3 underline" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Add form (disabled for viewer) -->
+  <div class="flex gap-3 mb-8">
+    <input class="border rounded px-3 py-2 w-72"
+           placeholder="Title"
+           [(ngModel)]="title"
+           [disabled]="!canEdit()" />
+    <input class="border rounded px-3 py-2 w-[26rem]"
+           placeholder="Description (optional)"
+           [(ngModel)]="description"
+           [disabled]="!canEdit()" />
+    <button class="bg-black text-white px-4 py-2 rounded"
+            (click)="add()"
+            [disabled]="!canEdit()">Add</button>
+  </div>
+
+  <div class="grid grid-cols-3 gap-6">
+    <!-- To do -->
+    <div class="col rounded-2xl border p-4">
+      <h2 class="text-xl font-semibold mb-3">To do</h2>
+      <div cdkDropList
+           cdkDropListSortingDisabled="true"
+           class="space-y-3 min-h-[420px]"
+           (cdkDropListDropped)="onDrop($event, 'todo')"
+           [cdkDropListDisabled]="!canEdit()">
+
+        <div class="card"
+             *ngFor="let t of todo()"
+             cdkDrag
+             [cdkDragDisabled]="!canEdit()"
+             [cdkDragData]="t">
+          <div class="font-semibold">{{ t.title }}</div>
+          <div class="text-sm text-gray-600" *ngIf="t.description">{{ t.description }}</div>
+
+          <div class="flex items-center gap-2 mt-2">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox"
+                     [checked]="t.done"
+                     (change)="toggleDone(t)"
+                     [disabled]="!canEdit()" />
+              Done
+            </label>
+
+            <select class="border rounded px-2 py-1 text-sm"
+                    [ngModel]="t.status"
+                    (ngModelChange)="changeStatus(t, $event)"
+                    [disabled]="!canEdit()">
+              <option value="todo">to-do</option>
+              <option value="in-progress">in-progress</option>
+              <option value="done">done</option>
+            </select>
+
+            <button class="text-sm underline ml-auto"
+                    (click)="remove(t)"
+                    *ngIf="canEdit()">delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In progress -->
+    <div class="col rounded-2xl border p-4">
+      <h2 class="text-xl font-semibold mb-3">In progress</h2>
+      <div cdkDropList
+           cdkDropListSortingDisabled="true"
+           class="space-y-3 min-h-[420px]"
+           (cdkDropListDropped)="onDrop($event, 'in-progress')"
+           [cdkDropListDisabled]="!canEdit()">
+
+        <div class="card"
+             *ngFor="let t of inProgress()"
+             cdkDrag
+             [cdkDragDisabled]="!canEdit()"
+             [cdkDragData]="t">
+          <div class="font-semibold">{{ t.title }}</div>
+          <div class="text-sm text-gray-600" *ngIf="t.description">{{ t.description }}</div>
+
+          <div class="flex items-center gap-2 mt-2">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox"
+                     [checked]="t.done"
+                     (change)="toggleDone(t)"
+                     [disabled]="!canEdit()" />
+              Done
+            </label>
+
+            <select class="border rounded px-2 py-1 text-sm"
+                    [ngModel]="t.status"
+                    (ngModelChange)="changeStatus(t, $event)"
+                    [disabled]="!canEdit()">
+              <option value="todo">to-do</option>
+              <option value="in-progress">in-progress</option>
+              <option value="done">done</option>
+            </select>
+
+            <button class="text-sm underline ml-auto"
+                    (click)="remove(t)"
+                    *ngIf="canEdit()">delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Done -->
+    <div class="col rounded-2xl border p-4">
+      <h2 class="text-xl font-semibold mb-3">Done</h2>
+      <div cdkDropList
+           cdkDropListSortingDisabled="true"
+           class="space-y-3 min-h-[420px]"
+           (cdkDropListDropped)="onDrop($event, 'done')"
+           [cdkDropListDisabled]="!canEdit()">
+
+        <div class="card"
+             *ngFor="let t of done()"
+             cdkDrag
+             [cdkDragDisabled]="!canEdit()"
+             [cdkDragData]="t">
+          <div class="font-semibold">{{ t.title }}</div>
+          <div class="text-sm text-gray-600" *ngIf="t.description">{{ t.description }}</div>
+
+          <div class="flex items-center gap-2 mt-2">
+            <label class="flex items-center gap-2 text-sm">
+              <input type="checkbox"
+                     [checked]="t.done"
+                     (change)="toggleDone(t)"
+                     [disabled]="!canEdit()" />
+              Done
+            </label>
+
+            <select class="border rounded px-2 py-1 text-sm"
+                    [ngModel]="t.status"
+                    (ngModelChange)="changeStatus(t, $event)"
+                    [disabled]="!canEdit()">
+              <option value="todo">to-do</option>
+              <option value="in-progress">in-progress</option>
+              <option value="done">done</option>
+            </select>
+
+            <button class="text-sm underline ml-auto"
+                    (click)="remove(t)"
+                    *ngIf="canEdit()">delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

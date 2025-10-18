@@ -1,11 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Organization } from './organization.entity';
 import { User } from './user.entity';
+import { Organization } from './organization.entity';
 
 @Entity()
 export class Task {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryGeneratedColumn()
+  id!: number;
 
   @Column()
   title!: string;
@@ -13,17 +13,14 @@ export class Task {
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ default: 'todo' })
+  @Column({ type: 'varchar', default: 'todo' })
   status!: 'todo' | 'in-progress' | 'done';
 
-  @ManyToOne(() => Organization, (org) => org.tasks, { eager: true })
-  organization!: Organization;
+  @ManyToOne(() => User, (user) => user.tasks, { onDelete: 'SET NULL', nullable: true })
+  createdBy?: User | null;
 
-  @ManyToOne(() => User, { eager: true })
-  createdBy!: User;
-
-  @ManyToOne(() => User, { eager: true, nullable: true })
-  assignee?: User;
+  @ManyToOne(() => Organization, (org) => org.tasks, { onDelete: 'CASCADE', nullable: true })
+  organization?: Organization | null;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -1,50 +1,87 @@
-import { Controller, UseGuards, Post, Body, Get, Request, Param, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Request,
+  UseGuards,
+  ForbiddenException,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Roles, RolesGuard } from '@secure-task-system/auth';
-import { User } from '../entities/user.entity';
-import { Request as ExpressRequest } from 'express';
-import { CreateTaskDto, UpdateTaskDto } from '@secure-task-system/data';
+import { RolesGuard, Roles } from '@secure-task-system/auth';
 
-interface AuthenticatedRequest extends ExpressRequest {
-  user: User; 
+type Status = 'todo' | 'in-progress' | 'done';
+
+interface JwtPayload {
+  sub: number;
+  username: string;
+  role: 'Owner' | 'Admin' | 'Viewer';
+  orgId?: number | null;
 }
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TasksController {
-  constructor(private tasks: TasksService) {}
+  constructor(private readonly tasks: TasksService) {}
 
-  @Post()
-  @Roles('Owner', 'Admin')
-  async create(
-    @Request() req: AuthenticatedRequest,
-    @Body() body: CreateTaskDto,
-  ) {
-    return this.tasks.create(req.user, body);
+  private me(req: { user: JwtPayload }) {
+    return {
+      userId: req.user.sub,
+      orgId: req.user.orgId,
+      roles: [req.user.role],
+    };
   }
 
+  @Post()
+  @Roles('Admin', 'Owner')
+  async create(@Request() req: { user: JwtPayload }, @Body() body: { title: string; description?: string; status?: Status }) {
+    const u = this.me(req);
+    if (!u.orgId) throw new ForbiddenException('No organization on token');
+    return this.tasks.createWithOrg({
+      title: body.title,
+      description: body.description,
+      status: body.status ?? 'todo',
+      createdByUserId: u.userId,
+      orgId: u.orgId,
+    });
+    }
+
   @Get()
-  @Roles('Owner', 'Admin', 'Viewer')
-  async list(@Request() req: AuthenticatedRequest) {
-    return this.tasks.findAll(req.user);
+  async findAll(@Request() req: { user: JwtPayload }) {
+    const u = this.me(req);
+    if (!u.orgId) throw new ForbiddenException('No organization on token');
+    return this.tasks.findAllByOrg(u.orgId);
   }
 
   @Get(':id')
-  @Roles('Owner', 'Admin', 'Viewer')
-  async get(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
-    return this.tasks.findById(req.user, id);
+  async findOne(@Request() req: { user: JwtPayload }, @Param('id', ParseIntPipe) id: number) {
+    const u = this.me(req);
+    if (!u.orgId) throw new ForbiddenException('No organization on token');
+    return this.tasks.findByIdScoped(u.orgId, id);
   }
 
   @Put(':id')
-  @Roles('Owner', 'Admin')
-  async update(@Request() req: AuthenticatedRequest, @Param('id') id: string, @Body() body: UpdateTaskDto) {
-    return this.tasks.update(req.user, id, body);
+  @Roles('Admin', 'Owner')
+  async update(
+    @Request() req: { user: JwtPayload },
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { title?: string; description?: string; status?: Status },
+  ) {
+    const u = this.me(req);
+    if (!u.orgId) throw new ForbiddenException('No organization on token');
+    return this.tasks.updateInOrg(u.orgId, id, body);
   }
 
   @Delete(':id')
-  @Roles('Owner', 'Admin')
-  async remove(@Request() req: AuthenticatedRequest, @Param('id') id: string) {
-    return this.tasks.remove(req.user, id);
+  @Roles('Admin', 'Owner')
+  async remove(@Request() req: { user: JwtPayload }, @Param('id', ParseIntPipe) id: number) {
+    const u = this.me(req);
+    if (!u.orgId) throw new ForbiddenException('No organization on token');
+    return this.tasks.deleteInOrg(u.orgId, id);
   }
 }
