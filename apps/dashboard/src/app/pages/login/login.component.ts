@@ -35,7 +35,6 @@ import { AuthService } from '../../core/auth/auth.service';
   `,
 })
 export class LoginComponent {
-  // make this public/readonly so the template can use it
   readonly auth: AuthService = inject(AuthService);
   private router: Router = inject(Router);
 

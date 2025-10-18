@@ -43,7 +43,6 @@ export class AuthService {
     return { access_token, refresh_token };
   }
 
-  // orgName is optional
   async register(body: { username: string; password: string; orgName?: string }) {
     const org = body.orgName
       ? await this.usersService.findOrCreateOrg(body.orgName)

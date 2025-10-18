@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { Router } from '@angular/router'; // 👈 add this
+import { Router } from '@angular/router'; 
 import { AuthService } from '../../core/auth/auth.service';
 import { Task, TaskService, Status } from './task.service';
 
@@ -15,7 +15,7 @@ import { Task, TaskService, Status } from './task.service';
 export class TasksComponent implements OnInit {
   private tasksApi: TaskService = inject(TaskService);
   auth: AuthService = inject(AuthService);
-  private router: Router = inject(Router); // 👈 add this
+  private router: Router = inject(Router); 
 
   title = '';
   description = '';
@@ -25,7 +25,6 @@ export class TasksComponent implements OnInit {
   inProgress = computed(() => this.tasks().filter(t => t.status === 'in-progress'));
   done = computed(() => this.tasks().filter(t => t.status === 'done'));
 
-  // ---- RBAC ----
   role = computed(() => (this.auth.user()?.role ?? 'Viewer').toLowerCase());
   canEdit = computed<boolean>(() => {
     const r = (this.auth.user()?.role ?? '').toLowerCase();
@@ -103,6 +102,6 @@ export class TasksComponent implements OnInit {
 
   logout() {
     this.auth.logout();
-    this.router.navigateByUrl('/login'); // 👈 redirect after logout
+    this.router.navigateByUrl('/login'); 
   }
 }

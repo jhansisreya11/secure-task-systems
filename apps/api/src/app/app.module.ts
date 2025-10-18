@@ -28,6 +28,6 @@ import { HealthController } from './health.controller';
     UsersModule,
     TasksModule,
   ],
-  controllers: [HealthController],   // 👈 add this line
+  controllers: [HealthController],   
 })
 export class AppModule {}

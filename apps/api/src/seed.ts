@@ -6,14 +6,12 @@ dotenv.config();
 import { User } from './entities/user.entity';
 import { Organization } from './entities/organization.entity';
 import { Task } from './entities/task.entity';
-// Remove this if you don't have it:
-// import { AuditLog } from './entities/audit.entity';
 import * as bcrypt from 'bcryptjs';
 
 const AppDataSource = new DataSource({
   type: 'sqlite',
   database: `${__dirname}/../db.sqlite`,
-  entities: [User, Organization, Task], // AuditLog removed unless you have it
+  entities: [User, Organization, Task], 
   synchronize: true,
 });
 

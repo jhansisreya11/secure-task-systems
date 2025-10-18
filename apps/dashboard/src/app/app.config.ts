@@ -9,7 +9,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(APP_ROUTES),
     provideHttpClient(
       withInterceptors([
-        (req, next) => new AuthInterceptor().intercept(req, next) // ✅ returns Observable
+        (req, next) => new AuthInterceptor().intercept(req, next) 
       ])
     ),
   ],

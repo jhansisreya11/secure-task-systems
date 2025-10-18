@@ -6,8 +6,7 @@
       <button class="ml-3 underline" (click)="logout()">Logout</button>
     </div>
   </div>
-
-  <!-- Add form (disabled for viewer) -->
+  
   <div class="flex gap-3 mb-8">
     <input class="border rounded px-3 py-2 w-72"
            placeholder="Title"
@@ -27,6 +26,8 @@
     <div class="col rounded-2xl border p-4">
       <h2 class="text-xl font-semibold mb-3">To do</h2>
       <div cdkDropList
+           #todoList="cdkDropList"
+           [cdkDropListConnectedTo]="[inProgressList, doneList]"
            cdkDropListSortingDisabled="true"
            class="space-y-3 min-h-[420px]"
            (cdkDropListDropped)="onDrop($event, 'todo')"
@@ -70,6 +71,8 @@
     <div class="col rounded-2xl border p-4">
       <h2 class="text-xl font-semibold mb-3">In progress</h2>
       <div cdkDropList
+           #inProgressList="cdkDropList"
+           [cdkDropListConnectedTo]="[todoList, doneList]"
            cdkDropListSortingDisabled="true"
            class="space-y-3 min-h-[420px]"
            (cdkDropListDropped)="onDrop($event, 'in-progress')"
@@ -113,6 +116,8 @@
     <div class="col rounded-2xl border p-4">
       <h2 class="text-xl font-semibold mb-3">Done</h2>
       <div cdkDropList
+           #doneList="cdkDropList"
+           [cdkDropListConnectedTo]="[todoList, inProgressList]"
            cdkDropListSortingDisabled="true"
            class="space-y-3 min-h-[420px]"
            (cdkDropListDropped)="onDrop($event, 'done')"

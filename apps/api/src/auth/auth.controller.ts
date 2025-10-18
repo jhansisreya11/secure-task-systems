@@ -37,7 +37,6 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() body: RegisterDto) {
-    // body has been validated at this point
-    return this.auth.register(body); // orgName is optional
+    return this.auth.register(body); 
   }
 }

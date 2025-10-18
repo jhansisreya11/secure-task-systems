@@ -12,9 +12,8 @@ export class User {
   @Column({ unique: true })
   username!: string;
 
-  // IMPORTANT: the column the seeder writes to:
   @Column()
-  passwordHash!: string;   // <-- this must exist in the DB, not "password"
+  passwordHash!: string;   
 
   @Column({ type: 'text', default: 'Viewer' })
   role!: Role;

@@ -18,19 +18,15 @@ export class AuthService {
   private router = inject(Router);
   private tokenKey = 'sts_token';
 
-  // current user signal (null when logged out)
   private _user = signal<JwtUser | null>(null);
   user = computed(() => this._user());
 
   constructor() {
-    // restore session on refresh
     const tok = this.token;
     if (tok) this._user.set(this.decode(tok));
   }
 
-  // ---- API ----
   login(body: { username: string; password: string }) {
-    // Your backend route is /auth/login
     return this.http.post<any>(`${environment.apiUrl}/auth/login`, body)
       .pipe(
         tap(res => {
@@ -46,7 +42,6 @@ export class AuthService {
   logout() {
     localStorage.removeItem(this.tokenKey);
     this._user.set(null);
-    // navigate away from guarded routes
     this.router.navigateByUrl('/login');
   }
 
@@ -67,14 +62,11 @@ export class AuthService {
     return !!r && roles.includes(r);
   }
 
-  // ---- utils ----
   private decode(token: string): JwtUser {
-    // decode base64url
     const payload = token.split('.')[1] ?? '';
     const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
     const data = JSON.parse(decodeURIComponent(escape(json)));
 
-    // Map to our shape. Adjust keys if your JWT is different.
     const user: JwtUser = {
       sub: data.sub,
       username: data.username ?? data.user ?? 'user',

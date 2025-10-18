@@ -1,14 +1,13 @@
-/* columns */
 .column {
-  border: 1px solid #e5e7eb;         /* gray-200 */
+  border: 1px solid #e5e7eb;         
   border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(0,0,0,.04);
   padding: 16px;
 }
 .column-header {
-  font-size: 1.125rem;               /* text-lg */
-  font-weight: 600;                   /* semibold */
+  font-size: 1.125rem;               
+  font-weight: 600;                  
   margin-bottom: 12px;
 }
 .dropzone {
@@ -18,7 +17,6 @@
   gap: 12px;
 }
 
-/* cards */
 .card {
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -31,7 +29,6 @@
 .card-desc  { font-size: .875rem; color: #4b5563; margin-top: 2px; } /* gray-600 */
 .card-controls { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
 
-/* controls */
 .sel {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -42,7 +39,6 @@
 .link-danger { font-size: .75rem; color: #dc2626; }
 .link-danger:hover { text-decoration: underline; }
 
-/* drag visuals */
 .cdk-drag-preview {
   box-shadow: 0 10px 25px rgba(0,0,0,.15);
   border-radius: 12px;
