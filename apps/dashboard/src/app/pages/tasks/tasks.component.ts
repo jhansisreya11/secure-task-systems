@@ -37,7 +37,7 @@ export class TasksComponent implements OnInit {
     this.tasksApi.list().subscribe((list: Task[]) => this.tasks.set(list));
   }
 
-  add() {
+  create() {
     if (!this.canEdit()) return;
     if (!this.title.trim()) return;
     this.tasksApi.create({
