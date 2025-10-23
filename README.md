@@ -66,6 +66,24 @@ libs/
   data/        → Shared TypeScript interfaces & DTOs
   auth/        → RBAC guards, decorators, JWT utilities
 
+##### Backend (NestJS + TypeORM + SQLite)
+
+Manages authentication, authorization, and data persistence.
+Uses TypeORM entities for Users, Organizations, Tasks, and Audit Logs.
+Enforces role-based access control with guards & decorators.
+Exposes REST APIs secured by JWT.
+
+##### Frontend (Angular + TailwindCSS)
+
+Implements a login screen and task dashboard.
+Stores JWT locally and attaches it to all API requests.
+Provides task creation, listing, and editing (with role restrictions).
+
+##### Shared Libraries
+
+libs/data: Common DTOs and interfaces shared between backend and frontend.
+libs/auth: Contains RBAC logic (guards, role decorators, JWT helpers).
+
 ## Database Schema
 The system uses SQLite (default) via TypeORM with the following entities:
 ### 1. Organization
@@ -207,6 +225,161 @@ Prevents cross-org access.
 ##### Audit Logging
 
 Actions such as task changes can be logged with actor info and metadata for accountability.
+
+## Sample API Requests/Responses
+Login
+
+POST /auth/login
+
+```{
+  "username": "admin",
+  "password": "password"
+}```
+
+
+Success(200)
+```{
+  "access_token": "eyJhbGciOiJIUzI1..."
+}```
+
+Errors
+
+401 if credentials wrong.
+
+List Tasks (org-scoped; Viewer can read)
+
+GET /tasks
+Headers: Authorization: Bearer <token>
+
+Success (200) — example right after seeding:
+
+[
+  {
+    "id": 1,
+    "title": "Sample Task 1",
+    "description": "Seeded task",
+    "status": "todo",
+    "createdByUserId": 1,
+    "organizationId": 1,
+    "createdAt": "2025-10-23T10:00:00.000Z",
+    "updatedAt": "2025-10-23T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "Sample Task 2",
+    "description": "Another task",
+    "status": "todo",
+    "createdByUserId": 2,
+    "organizationId": 1,
+    "createdAt": "2025-10-23T10:00:00.000Z",
+    "updatedAt": "2025-10-23T10:00:00.000Z"
+  }
+]
+
+Errors
+
+401 if token missing/invalid.
+
+3) Create Task (Owner/Admin only; org is derived from user)
+
+POST /tasks
+Headers: Authorization: Bearer <token>
+
+Request (orgId is not required; your service should attach the user’s org automatically)
+
+{
+  "title": "Finish project",
+  "description": "Complete secure task system",
+  "status": "in-progress"
+}
+
+
+Success (201)
+
+{
+  "id": 3,
+  "title": "Finish project",
+  "description": "Complete secure task system",
+  "status": "in-progress",
+  "createdByUserId": 2,
+  "organizationId": 1,
+  "createdAt": "2025-10-23T10:05:00.000Z",
+  "updatedAt": "2025-10-23T10:05:00.000Z"
+}
+
+
+Errors
+
+401 if token missing/invalid.
+
+403 if role is Viewer.
+
+4) Update Task (Owner/Admin; must be same org)
+
+PUT /tasks/:id
+Headers: Authorization: Bearer <token>
+
+Request (any subset of fields)
+
+{
+  "title": "Finish project (rev 2)",
+  "status": "done"
+}
+
+
+Success (200)
+
+{
+  "id": 3,
+  "title": "Finish project (rev 2)",
+  "description": "Complete secure task system",
+  "status": "done",
+  "createdByUserId": 2,
+  "organizationId": 1,
+  "createdAt": "2025-10-23T10:05:00.000Z",
+  "updatedAt": "2025-10-23T10:12:31.000Z"
+}
+
+
+Errors
+
+401 if token missing/invalid.
+
+403 if Viewer or task not in user’s org.
+
+404 if task id not found (or filtered out by org scope).
+
+5) Delete Task (Owner/Admin; must be same org)
+
+DELETE /tasks/:id
+Headers: Authorization: Bearer <token>
+
+Success (200/204)
+
+{ "deleted": true }
+
+
+Errors
+
+401 if token missing/invalid.
+
+403 if Viewer or task not in user’s org.
+
+404 if task id not found (or filtered by org scope).
+
+6) (If you wired it) Basic Audit Logging on Sensitive Actions
+
+When you create/update/delete a task, you can (and likely do) write an AuditLog entry:
+
+{
+  "id": "1b0e2b3e-7d9e-4a88-9a1f-1e0f9f2a3c5d",
+  "actorUserId": "2",
+  "actorUsername": "admin",
+  "action": "TASK_UPDATE",
+  "metadata": "{\"taskId\":3}",
+  "createdAt": "2025-10-23T10:12:31.000Z"
+}
+
 
 
 
