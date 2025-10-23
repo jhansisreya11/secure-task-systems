@@ -66,20 +66,20 @@ libs/<br>
   data/        → Shared TypeScript interfaces & DTOs<br>
   auth/        → RBAC guards, decorators, JWT utilities<br>
 
-##### Backend (NestJS + TypeORM + SQLite)
+### Backend (NestJS + TypeORM + SQLite)
 
 Manages authentication, authorization, and data persistence.<br>
 Uses TypeORM entities for Users, Organizations, Tasks, and Audit Logs.<br>
 Enforces role-based access control with guards & decorators.<br>
 Exposes REST APIs secured by JWT.<br>
 
-##### Frontend (Angular + TailwindCSS)
+### Frontend (Angular + TailwindCSS)
 
 Implements a login screen and task dashboard.<br>
 Stores JWT locally and attaches it to all API requests.<br>
 Provides task creation, listing, and editing (with role restrictions).<br>
 
-##### Shared Libraries
+### Shared Libraries
 
 libs/data: Common DTOs and interfaces shared between backend and frontend.<br>
 libs/auth: Contains RBAC logic (guards, role decorators, JWT helpers).<br>
@@ -185,44 +185,44 @@ Admin – Manage tasks within the organization (CRUD on tasks).<br>
 Viewer – Read-only access to tasks in the organization.<br>
 
 ### Entities
-##### User
+### User
 Belongs to an Organization.<br>
 Has a username, passwordHash, and a single role.<br>
 Can create tasks.<br>
 
-##### Organization
+### Organization
 Groups users and tasks.<br>
 Supports a parent/child hierarchy, though only the basic relationship is in place now.<br>
 
-##### Task
+### Task
 Created by a User.<br>
 Always linked to an Organization.<br>
 Has title, optional description, and a status (todo, in-progress, or done).<br>
 Tracks creation and update timestamps.<br>
 
-##### Audit Log
+### Audit Log
 Records key user actions with actorUserId, actorUsername, action, and optional metadata.<br>
 Auto-timestamps with createdAt.<br>
 
 ### Enforcement
 
-##### JWT Authentication
+### JWT Authentication
 
 Login issues a JWT.<br>
 Every protected route checks Authorization: Bearer <token>.<br>
 Guards validate the token and attach the user context (id, username, role, org).<br>
 
-##### Role Enforcement
+### Role Enforcement
 
 Guards + decorators check if the user’s role allows the requested action.<br>
 Example: Viewer cannot create/update/delete tasks.<br>
 
-##### Organization Scoping
+### Organization Scoping
 
 Queries on tasks are restricted to the user’s organization.<br>
 Prevents cross-org access.<br>
 
-##### Audit Logging
+### Audit Logging
 
 Actions such as task changes can be logged with actor info and metadata for accountability.<br>
 
@@ -311,7 +311,7 @@ Success (201)
   "updatedAt": "2025-10-23T10:05:00.000Z"
 }
 ```
-##### Errors
+### Errors
 
 401 if token missing/invalid.<br>
 403 if role is Viewer.
@@ -343,7 +343,7 @@ Success (200)
 }
 ```
 
-##### Errors
+### Errors
 
 401 if token missing/invalid.<br>
 403 if Viewer or task not in user’s org.<br>
@@ -358,7 +358,7 @@ Success (200/204)
 ```sh
 { "deleted": true }
 ```
-##### Errors
+### Errors
 
 401 if token missing/invalid.<br>
 403 if Viewer or task not in user’s org.<br>
