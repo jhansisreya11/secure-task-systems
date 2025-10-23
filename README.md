@@ -68,7 +68,7 @@ libs/
 
 ## Database Schema
 The system uses SQLite (default) via TypeORM with the following entities:
-# 1. Organization
+### 1. Organization
 
 id (PK, int, auto-increment)
 name (unique string)
@@ -79,7 +79,7 @@ OneToMany → Users (an org has many users)
 OneToMany → Tasks (an org has many tasks)
 OneToMany → Organizations (self-referencing parent/child hierarchy)
 
-# 2. User
+### 2. User
 
 id (PK, int, auto-increment)
 username (unique string)
@@ -91,7 +91,7 @@ Relations:
 ManyToOne → Organization (a user belongs to an org)
 OneToMany → Tasks (a user can create many tasks)
 
-# 3. Task
+### 3. Task
 
 id (PK, int, auto-increment)
 title (string)
@@ -106,7 +106,7 @@ Relations:
 ManyToOne → User (createdBy)
 ManyToOne → Organization
 
-# 4. AuditLog
+### 4. AuditLog
 
 id (PK, uuid)
 actorUserId (string)
@@ -161,6 +161,3 @@ Stores audit trails for user actions (e.g., task creation, updates, role changes
 
 
 
-
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
