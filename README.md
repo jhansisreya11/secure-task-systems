@@ -4,7 +4,7 @@ The system demonstrates secure task management with role-based access control (R
 
 ## Run tasks
 
-To run the dev server for your app, use:
+To run the dev server for your app, use:<br>
 
 Navigate to the backend:
 
@@ -40,7 +40,7 @@ nx serve api
 
 ## Frontend (Angular Dashboard)
 
-Use the plugin's generator to create new projects.
+Use the plugin's generator to create new projects.<br>
 
 Navigate to the frontend:
 
@@ -56,84 +56,84 @@ nx serve dashboard
 
 ## Architecture Overview
 
-This project uses an Nx monorepo structure:
+This project uses an Nx monorepo structure:<br>
 
-apps/
-  api/         → NestJS backend (auth, tasks, users, orgs, audit)
-  dashboard/   → Angular frontend (login, task management)
+apps/<br>
+  api/         → NestJS backend (auth, tasks, users, orgs, audit)<br>
+  dashboard/   → Angular frontend (login, task management)<br>
 
-libs/
-  data/        → Shared TypeScript interfaces & DTOs
-  auth/        → RBAC guards, decorators, JWT utilities
+libs/<br>
+  data/        → Shared TypeScript interfaces & DTOs<br>
+  auth/        → RBAC guards, decorators, JWT utilities<br>
 
 ##### Backend (NestJS + TypeORM + SQLite)
 
-Manages authentication, authorization, and data persistence.
-Uses TypeORM entities for Users, Organizations, Tasks, and Audit Logs.
-Enforces role-based access control with guards & decorators.
-Exposes REST APIs secured by JWT.
+Manages authentication, authorization, and data persistence.<br>
+Uses TypeORM entities for Users, Organizations, Tasks, and Audit Logs.<br>
+Enforces role-based access control with guards & decorators.<br>
+Exposes REST APIs secured by JWT.<br>
 
 ##### Frontend (Angular + TailwindCSS)
 
-Implements a login screen and task dashboard.
-Stores JWT locally and attaches it to all API requests.
-Provides task creation, listing, and editing (with role restrictions).
+Implements a login screen and task dashboard.<br>
+Stores JWT locally and attaches it to all API requests.<br>
+Provides task creation, listing, and editing (with role restrictions).<br>
 
 ##### Shared Libraries
 
-libs/data: Common DTOs and interfaces shared between backend and frontend.
-libs/auth: Contains RBAC logic (guards, role decorators, JWT helpers).
+libs/data: Common DTOs and interfaces shared between backend and frontend.<br>
+libs/auth: Contains RBAC logic (guards, role decorators, JWT helpers).<br>
 
 ## Database Schema
-The system uses SQLite (default) via TypeORM with the following entities:
+The system uses SQLite (default) via TypeORM with the following entities:<br>
 ### 1. Organization
 
-id (PK, int, auto-increment)
-name (unique string)
-parentId (nullable, FK → Organization.id)
+id (PK, int, auto-increment)<br>
+name (unique string)<br>
+parentId (nullable, FK → Organization.id)<br>
 
-Relations:
-OneToMany → Users (an org has many users)
-OneToMany → Tasks (an org has many tasks)
-OneToMany → Organizations (self-referencing parent/child hierarchy)
+Relations:<br>
+OneToMany → Users (an org has many users)<br>
+OneToMany → Tasks (an org has many tasks)<br>
+OneToMany → Organizations (self-referencing parent/child hierarchy)<br>
 
 ### 2. User
 
-id (PK, int, auto-increment)
-username (unique string)
-passwordHash (string, hashed password)
-role (Owner | Admin | Viewer, default: Viewer)
-organizationId (nullable, FK → Organization.id)
+id (PK, int, auto-increment)<br>
+username (unique string)<br>
+passwordHash (string, hashed password)<br>
+role (Owner | Admin | Viewer, default: Viewer)<br>
+organizationId (nullable, FK → Organization.id)<br>
 
 Relations:
-ManyToOne → Organization (a user belongs to an org)
-OneToMany → Tasks (a user can create many tasks)
+ManyToOne → Organization (a user belongs to an org)<br>
+OneToMany → Tasks (a user can create many tasks)<br>
 
 ### 3. Task
 
-id (PK, int, auto-increment)
-title (string)
-description (nullable string)
-status (varchar: 'todo' | 'in-progress' | 'done', default: todo)
-createdByUserId (nullable, FK → User.id)
-organizationId (nullable, FK → Organization.id)
-createdAt (timestamp, auto)
-updatedAt (timestamp, auto)
+id (PK, int, auto-increment)<br>
+title (string)<br>
+description (nullable string)<br>
+status (varchar: 'todo' | 'in-progress' | 'done', default: todo)<br>
+createdByUserId (nullable, FK → User.id)<br>
+organizationId (nullable, FK → Organization.id)<br>
+createdAt (timestamp, auto)<br>
+updatedAt (timestamp, auto)<br>
 
-Relations:
-ManyToOne → User (createdBy)
-ManyToOne → Organization
+Relations:<br>
+ManyToOne → User (createdBy)<br>
+ManyToOne → Organization<br>
 
 ### 4. AuditLog
 
-id (PK, uuid)
-actorUserId (string)
-actorUsername (string)
-action (string)
-metadata (nullable text)
-createdAt (timestamp, auto)
+id (PK, uuid)<br>
+actorUserId (string)<br>
+actorUsername (string)<br>
+action (string)<br>
+metadata (nullable text)<br>
+createdAt (timestamp, auto)<br>
 
-Purpose:
+Purpose:<br>
 Stores audit trails for user actions (e.g., task creation, updates, role changes).
 
 ┌───────────────────┐        ┌───────────────────┐
@@ -180,51 +180,51 @@ Stores audit trails for user actions (e.g., task creation, updates, role changes
 ## Access Control & Data Models
 ### Roles
 
-Owner – Full access within the organization (CRUD on tasks; manage users/org data where applicable).
-Admin – Manage tasks within the organization (CRUD on tasks).
-Viewer – Read-only access to tasks in the organization.
+Owner – Full access within the organization (CRUD on tasks. Manage users/org data where applicable).<br>
+Admin – Manage tasks within the organization (CRUD on tasks).<br>
+Viewer – Read-only access to tasks in the organization.<br>
 
 ### Entities
 ##### User
-Belongs to an Organization.
-Has a username, passwordHash, and a single role.
-Can create tasks.
+Belongs to an Organization.<br>
+Has a username, passwordHash, and a single role.<br>
+Can create tasks.<br>
 
 ##### Organization
-Groups users and tasks.
-Supports a parent/child hierarchy, though only the basic relationship is in place now.
+Groups users and tasks.<br>
+Supports a parent/child hierarchy, though only the basic relationship is in place now.<br>
 
 ##### Task
-Created by a User.
-Always linked to an Organization.
-Has title, optional description, and a status (todo, in-progress, or done).
-Tracks creation and update timestamps.
+Created by a User.<br>
+Always linked to an Organization.<br>
+Has title, optional description, and a status (todo, in-progress, or done).<br>
+Tracks creation and update timestamps.<br>
 
 ##### Audit Log
-Records key user actions with actorUserId, actorUsername, action, and optional metadata.
-Auto-timestamps with createdAt.
+Records key user actions with actorUserId, actorUsername, action, and optional metadata.<br>
+Auto-timestamps with createdAt.<br>
 
 ### Enforcement
 
 ##### JWT Authentication
 
-Login issues a JWT.
-Every protected route checks Authorization: Bearer <token>.
-Guards validate the token and attach the user context (id, username, role, org).
+Login issues a JWT.<br>
+Every protected route checks Authorization: Bearer <token>.<br>
+Guards validate the token and attach the user context (id, username, role, org).<br>
 
 ##### Role Enforcement
 
-Guards + decorators check if the user’s role allows the requested action.
-Example: Viewer cannot create/update/delete tasks.
+Guards + decorators check if the user’s role allows the requested action.<br>
+Example: Viewer cannot create/update/delete tasks.<br>
 
 ##### Organization Scoping
 
-Queries on tasks are restricted to the user’s organization.
-Prevents cross-org access.
+Queries on tasks are restricted to the user’s organization.<br>
+Prevents cross-org access.<br>
 
 ##### Audit Logging
 
-Actions such as task changes can be logged with actor info and metadata for accountability.
+Actions such as task changes can be logged with actor info and metadata for accountability.<br>
 
 ## Sample API Requests/Responses
 ### Login
@@ -286,9 +286,9 @@ Errors
 ### 3) Create Task (Owner/Admin only; org is derived from user)
 
 ### POST /tasks
-Headers: Authorization: Bearer <token>
+Headers: Authorization: Bearer <token><br>
 
-Request (orgId is not required; your service should attach the user’s org automatically)
+Request (orgId is not required)<br>
 
 ```sh
 {
@@ -311,9 +311,9 @@ Success (201)
   "updatedAt": "2025-10-23T10:05:00.000Z"
 }
 ```
-Errors
+##### Errors
 
-401 if token missing/invalid.
+401 if token missing/invalid.<br>
 403 if role is Viewer.
 
 ### 4) Update Task (Owner/Admin; must be same org)
@@ -343,30 +343,30 @@ Success (200)
 }
 ```
 
-Errors
+##### Errors
 
-401 if token missing/invalid.
-403 if Viewer or task not in user’s org.
-404 if task id not found (or filtered out by org scope).
+401 if token missing/invalid.<br>
+403 if Viewer or task not in user’s org.<br>
+404 if task id not found (or filtered out by org scope).<br>
 
 ### 5) Delete Task (Owner/Admin; must be same org)
 
 ### DELETE /tasks/:id
-Headers: Authorization: Bearer <token>
+Headers: Authorization: Bearer <token><br>
 
 Success (200/204)
 ```sh
 { "deleted": true }
 ```
-Errors
+##### Errors
 
-401 if token missing/invalid.
-403 if Viewer or task not in user’s org.
-404 if task id not found (or filtered by org scope).
+401 if token missing/invalid.<br>
+403 if Viewer or task not in user’s org.<br>
+404 if task id not found.<br>
 
 ### 6) Basic Audit Logging on Sensitive Actions
 
-When you create/update/delete a task, an AuditLog entry creates:
+When you create/update/delete a task, an AuditLog entry creates:<br>
 
 ```sh
 {
@@ -382,55 +382,55 @@ When you create/update/delete a task, an AuditLog entry creates:
 ## Future Enhancements
 ### 1) Security & Authentication
 
-Add refresh tokens and automatic rotation (short-lived access tokens).
-Strengthen password policies and add password reset flows.
-Enable 2FA (TOTP) for Owners/Admins.
-Add rate limiting, Helmet headers, and CSRF protection for better hardening.
+Add refresh tokens and automatic rotation (short-lived access tokens).<br>
+Strengthen password policies and add password reset flows.<br>
+Enable 2FA (TOTP) for Owners/Admins.<br>
+Add rate limiting, Helmet headers, and CSRF protection for better hardening.<br>
 
 ### 2) RBAC & Access Control
 
-Extend from single role to multi-role or fine-grained permissions (e.g., task:updateOwn vs task:updateAny).
-Enforce organization hierarchy inheritance (parent org users can manage child org data).
+Extend from single role to multi-role or fine-grained permissions (e.g., task:updateOwn vs task:updateAny).<br>
+Enforce organization hierarchy inheritance (parent org users can manage child org data).<br>
 
 ### 3) Audit & Compliance
 
-Persist audit logs for all sensitive actions (logins, role changes, deletions).
-Build an API for Owners/Admins to view audit logs with filtering and pagination.
-Add tamper-evidence (hash chains or external log sink).
+Persist audit logs for all sensitive actions (logins, role changes, deletions).<br>
+Build an API for Owners/Admins to view audit logs with filtering and pagination.<br>
+Add tamper-evidence (hash chains or external log sink).<br>
 
 ### 4) Data & API Improvements
 
-Move from SQLite → PostgreSQL for production readiness.
-Replace synchronize: true with proper migrations.
-Add pagination, filters, and sorting to /tasks.
-Support soft deletes (deletedAt) and optimistic locking on updates.
-Add OpenAPI/Swagger documentation and API versioning.
+Move from SQLite → PostgreSQL for production readiness.<br>
+Replace synchronize: true with proper migrations.<br>
+Add pagination, filters, and sorting to /tasks.<br>
+Support soft deletes (deletedAt) and optimistic locking on updates.<br>
+Add OpenAPI/Swagger documentation and API versioning.<br>
 
 ### 5) Frontend UX
 
-Implement role-aware UI (hide disabled actions for Viewer).
-Add search, filtering, and keyboard shortcuts.
-Provide dark/light mode toggle and UI polish.
-Show toast notifications for errors and success states.
+Implement role-aware UI (hide disabled actions for Viewer).<br>
+Add search, filtering, and keyboard shortcuts.<br>
+Provide dark/light mode toggle and UI polish.<br>
+Show toast notifications for errors and success states.<br>
 
 ### 6) Observability & Ops
 
-Add structured logging (with user/org context).
-Expose metrics and tracing with Prometheus/Grafana.
-Provide Docker + docker-compose setup.
-Add CI/CD pipeline with lint/test/build checks.
+Add structured logging (with user/org context).<br>
+Expose metrics and tracing with Prometheus/Grafana.<br>
+Provide Docker + docker-compose setup.<br>
+Add CI/CD pipeline with lint/test/build checks.<br>
 
 ### 7) Testing
 
-Expand unit tests for guards, services, and auth.
-Add E2E tests (login + task CRUD + role enforcement).
-Run load testing for /tasks under concurrency.
+Expand unit tests for guards, services, and auth.<br>
+Add E2E tests (login + task CRUD + role enforcement).<br>
+Run load testing for /tasks under concurrency.<br>
 
 ### 8) Admin & Org Management
 
-Build an Admin UI to invite/manage users and set roles.
-Add bulk actions (bulk close tasks, bulk role updates).
-Support SSO/OAuth2 (Google, Azure AD, Okta).
+Build an Admin UI to invite/manage users and set roles.<br>
+Add bulk actions (bulk close tasks, bulk role updates).<br>
+Support SSO/OAuth2 (Google, Azure AD, Okta).<br>
 
 
 
