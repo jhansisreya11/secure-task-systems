@@ -135,47 +135,7 @@ createdAt (timestamp, auto)<br>
 
 Purpose:<br>
 Stores audit trails for user actions (e.g., task creation, updates, role changes).
-
-┌───────────────────┐        ┌───────────────────┐
-│   Organization    │1      *│       User        │
-│───────────────────│        │───────────────────│
-│ id (PK)           │        │ id (PK)           │
-│ name (unique)     │        │ username (unique) │
-│ parentId (FK→Org) │◄──────►│ passwordHash      │
-└───────────────────┘        │ role (Owner/Admin/Viewer)│
-       ▲                     │ organizationId (FK)     │
-       │                     └───────────────────┘
-       │                               │ 1
-       │                               │
-       │                               │ *
-┌───────────────────┐                  │
-│   Organization    │◄─────────────────┘
-│   (self-child)    │
-└───────────────────┘
-
-┌───────────────────┐
-│       Task        │
-│───────────────────│
-│ id (PK)           │
-│ title             │
-│ description       │
-│ status            │
-│ createdByUserId(FK)│
-│ organizationId(FK)│
-│ createdAt         │
-│ updatedAt         │
-└───────────────────┘
-
-┌───────────────────┐
-│     AuditLog      │
-│───────────────────│
-│ id (uuid, PK)     │
-│ actorUserId       │
-│ actorUsername     │
-│ action            │
-│ metadata          │
-│ createdAt         │
-└───────────────────┘
+<img width="601" height="814" alt="image" src="https://github.com/user-attachments/assets/6754284d-52ea-417c-9668-c2495bd47b4e" />
 
 ## Access Control & Data Models
 ### Roles
