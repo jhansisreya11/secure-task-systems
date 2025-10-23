@@ -1,5 +1,5 @@
 # SecureTaskSystem
-A modular full-stack project built with NestJS (backend) and Angular (frontend) in an Nx monorepo.
+A modular full-stack project built with NestJS (backend) and Angular (frontend) in an Nx monorepo.<br>
 The system demonstrates secure task management with role-based access control (RBAC), JWT authentication, and organizational scoping of data.
 
 ## Run tasks
