@@ -159,5 +159,54 @@ Stores audit trails for user actions (e.g., task creation, updates, role changes
 │ createdAt         │
 └───────────────────┘
 
+## Access Control & Data Models
+### Roles
+
+Owner – Full access within the organization (CRUD on tasks; manage users/org data where applicable).
+Admin – Manage tasks within the organization (CRUD on tasks).
+Viewer – Read-only access to tasks in the organization.
+
+### Entities
+##### User
+Belongs to an Organization.
+Has a username, passwordHash, and a single role.
+Can create tasks.
+
+##### Organization
+Groups users and tasks.
+Supports a parent/child hierarchy, though only the basic relationship is in place now.
+
+##### Task
+Created by a User.
+Always linked to an Organization.
+Has title, optional description, and a status (todo, in-progress, or done).
+Tracks creation and update timestamps.
+
+##### Audit Log
+Records key user actions with actorUserId, actorUsername, action, and optional metadata.
+Auto-timestamps with createdAt.
+
+### Enforcement
+
+##### JWT Authentication
+
+Login issues a JWT.
+Every protected route checks Authorization: Bearer <token>.
+Guards validate the token and attach the user context (id, username, role, org).
+
+##### Role Enforcement
+
+Guards + decorators check if the user’s role allows the requested action.
+Example: Viewer cannot create/update/delete tasks.
+
+##### Organization Scoping
+
+Queries on tasks are restricted to the user’s organization.
+Prevents cross-org access.
+
+##### Audit Logging
+
+Actions such as task changes can be logged with actor info and metadata for accountability.
+
 
 
