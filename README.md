@@ -227,32 +227,34 @@ Prevents cross-org access.
 Actions such as task changes can be logged with actor info and metadata for accountability.
 
 ## Sample API Requests/Responses
-Login
+### Login
 
-POST /auth/login
+### POST /auth/login
 
-```{
+```sh
+{
   "username": "admin",
   "password": "password"
-}```
-
+}
+```
 
 Success(200)
-```{
-  "access_token": "eyJhbGciOiJIUzI1..."
-}```
-
-Errors
+```sh
+{
+ "access_token": "eyJhbGciOiJIUzI1..."
+}
+```
+### Errors
 
 401 if credentials wrong.
 
-List Tasks (org-scoped; Viewer can read)
+### List Tasks (org-scoped; Viewer can read)
 
-GET /tasks
+### GET /tasks
 Headers: Authorization: Bearer <token>
 
-Success (200) — example right after seeding:
-
+Success (200) 
+```sh
 [
   {
     "id": 1,
@@ -275,27 +277,29 @@ Success (200) — example right after seeding:
     "updatedAt": "2025-10-23T10:00:00.000Z"
   }
 ]
+```
 
 Errors
 
 401 if token missing/invalid.
 
-3) Create Task (Owner/Admin only; org is derived from user)
+### 3) Create Task (Owner/Admin only; org is derived from user)
 
-POST /tasks
+### POST /tasks
 Headers: Authorization: Bearer <token>
 
 Request (orgId is not required; your service should attach the user’s org automatically)
 
+```sh
 {
   "title": "Finish project",
   "description": "Complete secure task system",
   "status": "in-progress"
 }
-
-
+```
 Success (201)
 
+```sh
 {
   "id": 3,
   "title": "Finish project",
@@ -306,29 +310,27 @@ Success (201)
   "createdAt": "2025-10-23T10:05:00.000Z",
   "updatedAt": "2025-10-23T10:05:00.000Z"
 }
-
-
+```
 Errors
 
 401 if token missing/invalid.
-
 403 if role is Viewer.
 
-4) Update Task (Owner/Admin; must be same org)
+### 4) Update Task (Owner/Admin; must be same org)
 
-PUT /tasks/:id
+### PUT /tasks/:id
 Headers: Authorization: Bearer <token>
 
-Request (any subset of fields)
-
+Request 
+```sh
 {
-  "title": "Finish project (rev 2)",
+  "title": "Finish project",
   "status": "done"
 }
-
+```
 
 Success (200)
-
+```sh
 {
   "id": 3,
   "title": "Finish project (rev 2)",
@@ -339,38 +341,34 @@ Success (200)
   "createdAt": "2025-10-23T10:05:00.000Z",
   "updatedAt": "2025-10-23T10:12:31.000Z"
 }
-
+```
 
 Errors
 
 401 if token missing/invalid.
-
 403 if Viewer or task not in user’s org.
-
 404 if task id not found (or filtered out by org scope).
 
-5) Delete Task (Owner/Admin; must be same org)
+### 5) Delete Task (Owner/Admin; must be same org)
 
-DELETE /tasks/:id
+### DELETE /tasks/:id
 Headers: Authorization: Bearer <token>
 
 Success (200/204)
-
+```sh
 { "deleted": true }
-
-
+```
 Errors
 
 401 if token missing/invalid.
-
 403 if Viewer or task not in user’s org.
-
 404 if task id not found (or filtered by org scope).
 
-6) (If you wired it) Basic Audit Logging on Sensitive Actions
+### 6) Basic Audit Logging on Sensitive Actions
 
-When you create/update/delete a task, you can (and likely do) write an AuditLog entry:
+When you create/update/delete a task, an AuditLog entry creates:
 
+```sh
 {
   "id": "1b0e2b3e-7d9e-4a88-9a1f-1e0f9f2a3c5d",
   "actorUserId": "2",
@@ -379,6 +377,60 @@ When you create/update/delete a task, you can (and likely do) write an AuditLog 
   "metadata": "{\"taskId\":3}",
   "createdAt": "2025-10-23T10:12:31.000Z"
 }
+```
+
+## Future Enhancements
+### 1) Security & Authentication
+
+Add refresh tokens and automatic rotation (short-lived access tokens).
+Strengthen password policies and add password reset flows.
+Enable 2FA (TOTP) for Owners/Admins.
+Add rate limiting, Helmet headers, and CSRF protection for better hardening.
+
+### 2) RBAC & Access Control
+
+Extend from single role to multi-role or fine-grained permissions (e.g., task:updateOwn vs task:updateAny).
+Enforce organization hierarchy inheritance (parent org users can manage child org data).
+
+### 3) Audit & Compliance
+
+Persist audit logs for all sensitive actions (logins, role changes, deletions).
+Build an API for Owners/Admins to view audit logs with filtering and pagination.
+Add tamper-evidence (hash chains or external log sink).
+
+### 4) Data & API Improvements
+
+Move from SQLite → PostgreSQL for production readiness.
+Replace synchronize: true with proper migrations.
+Add pagination, filters, and sorting to /tasks.
+Support soft deletes (deletedAt) and optimistic locking on updates.
+Add OpenAPI/Swagger documentation and API versioning.
+
+### 5) Frontend UX
+
+Implement role-aware UI (hide disabled actions for Viewer).
+Add search, filtering, and keyboard shortcuts.
+Provide dark/light mode toggle and UI polish.
+Show toast notifications for errors and success states.
+
+### 6) Observability & Ops
+
+Add structured logging (with user/org context).
+Expose metrics and tracing with Prometheus/Grafana.
+Provide Docker + docker-compose setup.
+Add CI/CD pipeline with lint/test/build checks.
+
+### 7) Testing
+
+Expand unit tests for guards, services, and auth.
+Add E2E tests (login + task CRUD + role enforcement).
+Run load testing for /tasks under concurrency.
+
+### 8) Admin & Org Management
+
+Build an Admin UI to invite/manage users and set roles.
+Add bulk actions (bulk close tasks, bulk role updates).
+Support SSO/OAuth2 (Google, Azure AD, Okta).
 
 
 
